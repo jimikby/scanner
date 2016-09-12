@@ -1,0 +1,1 @@
+java -jar scanner-1.0.jar com.epam.scanner.app.App DRIVE_LETTER:\PATH_TO_TDP <-- just edit run.bat
