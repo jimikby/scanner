@@ -99,20 +99,22 @@ public class ArtifactBuilder implements ParserBuilder {
 
 			switch (FieldEnum.fromString(fieldName)) {
 			case GROUP_ID:
+				if (((Artifact) artifact).getGroupId() == null) {
 				((Artifact) artifact).setGroupId(fieldValue);
+				}
 				break;
 			case ARTIFACT_ID:
+				if (((Artifact) artifact).getArtifactId() == null) {
 				((Artifact) artifact).setArtifactId(fieldValue);
+				}
 				break;
 			case VERSION:
+				if (((Artifact) artifact).getVersion() == null) {
 				((Artifact) artifact).setVersion(fieldValue.replaceAll("[${}]",""));
+				}
 				break;
 			case EXCLUSIONS:
-				if (fieldValue != null) {
 					((Artifact) artifact).setExclude(true);
-				} else {
-					((Artifact) artifact).setExclude(false);
-				}
 				break;
 			}
 		}
