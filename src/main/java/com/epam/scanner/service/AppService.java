@@ -130,7 +130,9 @@ public class AppService {
 			List<Artifact> newArtifacts = artifactService.takeByVersion(value);
 
 			if (newArtifacts != null) {
+				
 				artifacts.addAll(newArtifacts);
+
 			} else {
 				// if (!message.equals("pom_TDP_4.xml")) {
 				// System.out.println("Artifact doesn't found in " + message
