@@ -53,23 +53,26 @@ public class AppService {
 	}
 
 	public String convertToGradleFormat(List<Artifact> artifacts, String type) {
+		
+		String text = "";
 
-		String txtFile = "";
+	// "configurations {\r\n	warlibs.transitive = false\r\n}\r\n\r\ndependencies {\r\n";
 		for (Artifact artifact : artifacts) {
+			String txtFile = "";
+			if (artifact != null ) {
 
-			if (artifact != null) {
-
-				if (artifact.getGroupId() != null) {
+				if (artifact.getGroupId() != null && !artifact.getGroupId().equals("pricing")) {
 
 					if (type.equals("ALL")) {
-						txtFile += "compile ";
+						txtFile += "\tcomplie ";
 					}
 
 					txtFile += "group: '" + artifact.getGroupId() + "', name: '" + artifact.getArtifactId()
 							+ "', version: property('" + artifact.getVersion() + "')";
 
 					if (artifact.getExtension() != null && artifact.getExtension() != "jar") {
-						txtFile += ", ext: '" + artifact.getPath() + "'";
+						txtFile += ", ext: '" + artifact.getExtension() + "'";
+						System.out.println(artifact.getExtension());
 					}
 
 					if (artifact.getExclude() != null && artifact.getExclude() && type.equals("ALL")) {
@@ -93,10 +96,11 @@ public class AppService {
 			} else {
 				txtFile += null;
 			}
-
-			txtFile += "\r\n";
+			text = text.replace(txtFile+ "\r\n", "");
+			text = text + txtFile + "\r\n";
 		}
-		return txtFile;
+		//txtFile += "}";
+		return text;
 	}
 
 	public List<Artifact> findArtifactsByArtifactId(List<Artifact> incompleteArtifacts, String message) {
@@ -189,6 +193,8 @@ public class AppService {
 				artifacts.add(artifact);
 			}
 		}
+	
+		
 		return artifacts;
 	}
 
@@ -264,7 +270,7 @@ public class AppService {
 			String[] version = StringUtils.split(group, ".");
 			if (version.length >= 3) {
 				ver = version[3];
-				if (ver.equals("handlers")) {
+				if (ver.equals("handlers") || ver.equals("base")) {
 					ver = ver + "." + version[4];
 				}
 
@@ -340,7 +346,7 @@ public class AppService {
 
 				Artifact artifact = new Artifact();
 
-				if (strLine.replace("${", "").equals(strLine) && !strLine.replace(".", "").equals(strLine)) {
+				if (!strLine.contains("${") && strLine.contains(".")) {
 
 					String[] strLineArray = StringUtils.split(strLine, ".");
 
