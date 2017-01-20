@@ -23,6 +23,8 @@ import com.epam.scanner.service.AppService;
 import com.epam.scanner.service.ArtifactService;
 import com.epam.scanner.utils.DirectoryScanner;
 import com.epam.scanner.utils.FileSaver;
+import com.google.common.base.CharMatcher;
+import com.google.common.base.Splitter;
 
 public class App {
 
@@ -47,12 +49,16 @@ public class App {
 		// String command = "check-version";
 		// String command = "check-version-umbrella";
 		// String command = "description";
-		String command = "parsetxt";
+		// String command = "3dpaty";
 		// String command = "modules";
-		if (!command.contains("check-version") && !command.equals("description")) {
+		// String command = "replace";
+		 String command = "parsetxt";
+		//String command = "findproperties";
+
+		if (!command.contains("check-version") && !command.equals("description") && !command.equals("replace")) {
 
 			List<Artifact> allTdpArtifacts = appService.fingGroupId(appService.parseGradleBuildForArtifacts());
-			List<Artifact> allPomArtifacts = appService.parseXMlForArtifacts("pom.xml");
+			List<Artifact> allPomArtifacts = appService.parseXMlForArtifacts("pom*.xml");
 			List<Artifact> allPomTDP4Artifacts = appService.parseXMlForArtifacts("pom_tdp_4_0.xml");
 
 			artifactService.saveAll(allTdpArtifacts, "tdp"); // set type tdp
@@ -118,7 +124,7 @@ public class App {
 			masks.add("version: \"4.0.0\"");
 			masks.add("version: \"1.0\"");
 			List<File> searchfiles = appService.collectFiles("build.gradle");
-			List<File> filteredFiles = appService.filterFiles(searchfiles, masks);
+			List<File> filteredFiles = appService.filterFilesDep(searchfiles, masks);
 			break;
 		}
 
@@ -133,6 +139,40 @@ public class App {
 			break;
 		}
 
+		case "3dpaty": {
+			List<File> searchFiles = appService.collectFiles("*.gradle");
+			List<Artifact> artifacts = appService.collectDependencies(searchFiles);
+			appService.saveFiles(artifacts);
+
+			List<File> searchFilesGroovy = appService.collectFilesPath("*.groovy", "D:\\gradle-plugins");
+			List<Artifact> artifactsPlugin = appService.collectDependencies(searchFilesGroovy);
+			appService.saveFiles(artifactsPlugin, appService.getPathToTDP() + "\\properties\\", "gradle-plugins");
+
+			break;
+		}
+
+		case "replace": {
+			List<String> masks = new ArrayList<>();
+			masks.add("'../00006435/build/package.properties'");
+			String replace = "\"${appServerConfigDir}/package.properties\"";
+			List<File> searchFiles = appService.collectFiles("build.gradle");
+			List<File> filteredFiles = appService.filterFiles(searchFiles, masks);
+			appService.replaceAndSave(filteredFiles, masks, replace);
+			break;
+		}
+
+		case "findproperties": {
+			List<Artifact> artifactIdsFromTxtFile = new ArrayList<>();
+			List<File> searchfiles = DirectoryScanner.listf(new File(AppConfig.LIST_JARS_INPUT), "*.txt");
+			for (File file : searchfiles) {
+				artifactIdsFromTxtFile = appService.parseArtifactFromVersionedJarList("*.txt", file);
+				System.out.println(artifactIdsFromTxtFile);
+				FileSaver.save(AppConfig.LIST_JARS_OUTPUT + "\\" + file.getName().replace(".txt", "_new.txt"),
+						appService.convertToGradleFormat(artifactIdsFromTxtFile, ""));
+			}
+			break;
+		}
+
 		case "description": {
 			List<File> searchfiles = appService.collectFiles("build.gradle");
 			List<File> filteredFiles = appService.addDescription(searchfiles);
@@ -142,30 +182,35 @@ public class App {
 		case "parsetxt": {
 			List<Artifact> artifactIdsFromTxtFile = new ArrayList<>();
 
-			try {
-				artifactIdsFromTxtFile = appService.parseTxtForArtifactId("*.txt");
-			} catch (IOException e) {
-				e.printStackTrace();
+			List<File> searchfiles = DirectoryScanner.listf(new File(AppConfig.LIST_JARS_INPUT), "*.txt");
+			for (File file : searchfiles) {
+				try {
+					artifactIdsFromTxtFile = appService.parseTxtForArtifactId("*.txt", file);
+
+					List<Artifact> tpdArtifactsFromTxtFile = appService
+							.findArtifactsByArtifactId(artifactIdsFromTxtFile, "TDP");
+
+					List<Artifact> versionsFromTxtFile = appService.parseTxtForVersion("*.txt", file);
+
+					List<Artifact> pomArtfacts = appService.findArtifactsByVersion(versionsFromTxtFile, "pom*.xml");
+					List<Artifact> pomTdp4Artfacts = appService.findArtifactsByVersion(versionsFromTxtFile,
+							"pom_TDP_4.xml");
+
+					pomArtfacts.addAll(tpdArtifactsFromTxtFile);
+
+					FileSaver.save(AppConfig.LIST_JARS_OUTPUT + "\\" + file.getName().replace(".txt", "_new.txt"),
+							appService.convertToGradleFormat(pomArtfacts, ""));
+					FileSaver.save(AppConfig.LIST_JARS_OUTPUT + "\\" + file.getName().replace(".txt", "_tr.txt"),
+							appService.convertToGradleFormat(pomArtfacts, "ALL"));
+
+					FileSaver.save(AppConfig.LIST_JARS_OUTPUT + "\\" + file.getName().replace(".txt", "_TDP_4.txt"),
+							appService.convertToGradleFormat(pomTdp4Artfacts, ""));
+
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
 			}
-
-			List<Artifact> tpdArtifactsFromTxtFile = appService.findArtifactsByArtifactId(artifactIdsFromTxtFile,
-					"TDP");
-			List<Artifact> versionsFromTxtFile = appService.parseTxtForVersion("*.txt");
-			System.out.println(versionsFromTxtFile);
-			List<Artifact> pomArtfacts = appService.findArtifactsByVersion(versionsFromTxtFile, "pom.xml");
-			List<Artifact> pomTdp4Artfacts = appService.findArtifactsByVersion(versionsFromTxtFile, "pom_TDP_4.xml");
-
-			pomArtfacts.addAll(tpdArtifactsFromTxtFile);
-
-			FileSaver.save(AppConfig.LIST_JARS_OUTPUT + "\\output" + (System.currentTimeMillis() / 1000) + ".txt",
-					appService.convertToGradleFormat(pomArtfacts, ""));
-			FileSaver.save(AppConfig.LIST_JARS_OUTPUT + "\\output" + (System.currentTimeMillis() / 1000) + "_tr.txt",
-					appService.convertToGradleFormat(pomArtfacts, "ALL"));
-
-			FileSaver.save(AppConfig.LIST_JARS_OUTPUT + "\\output_tdp_4.txt",
-					appService.convertToGradleFormat(pomTdp4Artfacts, ""));
 		}
-
 		}
 
 	}
@@ -187,7 +232,7 @@ public class App {
 
 			List<Artifact> tpdArtifactsFromTxtFile = appService.findArtifactsByArtifactId(tpdArtifactsFromTxt, "TDP");
 
-			List<Artifact> pomArtfacts = appService.findArtifactsByVersion(pomArtifactsFromTxt, "pom.xml");
+			List<Artifact> pomArtfacts = appService.findArtifactsByVersion(pomArtifactsFromTxt, "pom*.xml");
 			List<Artifact> pomTdp4Artfacts = appService.findArtifactsByVersion(pomArtifactsFromTxt, "pom_TDP_4.xml");
 
 			pomArtfacts.addAll(tpdArtifactsFromTxtFile);

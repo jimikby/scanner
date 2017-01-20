@@ -34,13 +34,19 @@ public class ArtifactService {
 		}
 
 		public void saveAll(List<Artifact> artifacts, String type) {
+			System.out.println(artifacts);
 			artifactDao.saveAll(artifacts,type);
-			
 		}
 
 		public List<Artifact> takeByPath(String value) {
 			return artifactDao.takeByPath(value);
 
 		}
+		
+		public List<Artifact> takeByNameAndHadcodedVersion(String value,String hardcodedVersion ) {
+			return artifactDao.takeByNameAndHadcodedVersion(value, hardcodedVersion);
+
+		}
+		
 
 	}

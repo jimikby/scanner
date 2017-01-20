@@ -23,4 +23,9 @@ public class FileReader {
         }
         return text;
     }
+    
+    public static String read(String file) {
+    	return read(new File(file)); 
+
+    }
 }

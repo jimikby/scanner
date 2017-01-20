@@ -15,6 +15,7 @@ public class ArtifactRowMapper implements RowMapper<Artifact> {
 		artifact.setArtifactId(rs.getString("artifact_id"));
 		artifact.setGroupId(rs.getString("group_id"));
 		artifact.setVersion(rs.getString("version"));
+		artifact.setHardcodedVersion(rs.getString("hardcoded_version"));
 		artifact.setExclude(rs.getBoolean("exclude"));
 		artifact.setPath(rs.getString("path"));
 		artifact.setName(rs.getString("name"));

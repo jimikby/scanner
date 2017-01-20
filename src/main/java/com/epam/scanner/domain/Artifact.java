@@ -19,6 +19,7 @@ public class Artifact implements AbstractDomainEntity, ParsedItem {
 	private String classifier;
 	private String extension;
 	private String type;
+	private String hardcodedVersion;
 	
 	public int size() {
 		int size = this.artifacts.size();
@@ -52,6 +53,14 @@ public class Artifact implements AbstractDomainEntity, ParsedItem {
 
 	public void setGroupId(String groupId) {
 		this.groupId = groupId;
+	}
+	
+	public String getHardcodedVersion() {
+		return hardcodedVersion;
+	}
+	
+	public void setHardcodedVersion(String hardcodedVersion) {
+		this.hardcodedVersion = hardcodedVersion;
 	}
 
 	public String getArtifactId() {
@@ -149,6 +158,7 @@ public class Artifact implements AbstractDomainEntity, ParsedItem {
 		result = prime * result + ((path == null) ? 0 : path.hashCode());
 		result = prime * result + ((type == null) ? 0 : type.hashCode());
 		result = prime * result + ((version == null) ? 0 : version.hashCode());
+		result = prime * result + ((hardcodedVersion == null) ? 0 : hardcodedVersion.hashCode());
 		return result;
 	}
 
@@ -216,9 +226,15 @@ public class Artifact implements AbstractDomainEntity, ParsedItem {
 				return false;
 		} else if (!version.equals(other.version))
 			return false;
+		if (hardcodedVersion == null) {
+			if (other.hardcodedVersion != null)
+				return false;
+		} else if (!hardcodedVersion.equals(other.hardcodedVersion))
+			return false;
 		return true;
 	}
-
+	
+	
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
@@ -228,6 +244,8 @@ public class Artifact implements AbstractDomainEntity, ParsedItem {
 		builder.append(artifactId);
 		builder.append(", version=");
 		builder.append(version);
+		builder.append(", hardcodedVersion=");
+		builder.append(hardcodedVersion);
 		builder.append(", exclude=");
 		builder.append(exclude);
 		builder.append(", path=");
