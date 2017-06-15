@@ -34,7 +34,7 @@ public class ArtifactService {
 		}
 
 		public void saveAll(List<Artifact> artifacts, String type) {
-			System.out.println(artifacts);
+			//System.out.println(artifacts);
 			artifactDao.saveAll(artifacts,type);
 		}
 

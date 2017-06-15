@@ -52,7 +52,7 @@ public class App {
 		// String command = "3dpaty";
 		// String command = "modules";
 		// String command = "replace";
-		 String command = "parsetxt";
+		String command = "parsetxt";
 		//String command = "findproperties";
 
 		if (!command.contains("check-version") && !command.equals("description") && !command.equals("replace")) {
@@ -138,19 +138,7 @@ public class App {
 			List<File> filteredFiles = appService.filterFilesUmbrella(searchfiles, masks);
 			break;
 		}
-
-		case "3dpaty": {
-			List<File> searchFiles = appService.collectFiles("*.gradle");
-			List<Artifact> artifacts = appService.collectDependencies(searchFiles);
-			appService.saveFiles(artifacts);
-
-			List<File> searchFilesGroovy = appService.collectFilesPath("*.groovy", "D:\\gradle-plugins");
-			List<Artifact> artifactsPlugin = appService.collectDependencies(searchFilesGroovy);
-			appService.saveFiles(artifactsPlugin, appService.getPathToTDP() + "\\properties\\", "gradle-plugins");
-
-			break;
-		}
-
+		
 		case "replace": {
 			List<String> masks = new ArrayList<>();
 			masks.add("'../00006435/build/package.properties'");
@@ -160,6 +148,19 @@ public class App {
 			appService.replaceAndSave(filteredFiles, masks, replace);
 			break;
 		}
+
+		case "3dpaty": {
+			List<File> searchFiles = appService.collectFiles("*.gradle");
+			List<Artifact> artifacts = appService.collectDependencies(searchFiles);
+			appService.saveFiles(artifacts);
+
+			List<File> searchFilesGroovy = appService.collectFilesPath("*.groovy", "D:\\gradle-plugins");
+			List<Artifact> artifactsPlugin = appService.collectDependencies(searchFilesGroovy);
+			appService.saveFiles(artifactsPlugin, AppConfig.TDP_LIBS + "/", "gradle-plugins");
+
+			break;
+		}
+
 
 		case "findproperties": {
 			List<Artifact> artifactIdsFromTxtFile = new ArrayList<>();
@@ -186,6 +187,7 @@ public class App {
 			for (File file : searchfiles) {
 				try {
 					artifactIdsFromTxtFile = appService.parseTxtForArtifactId("*.txt", file);
+					
 
 					List<Artifact> tpdArtifactsFromTxtFile = appService
 							.findArtifactsByArtifactId(artifactIdsFromTxtFile, "TDP");

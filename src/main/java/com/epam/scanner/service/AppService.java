@@ -61,9 +61,6 @@ public class AppService {
 	public String convertToGradleFormat(List<Artifact> artifacts, String type) {
 
 		String text = "";
-
-		// "configurations {\r\n warlibs.transitive =
-		// false\r\n}\r\n\r\ndependencies {\r\n";
 		for (Artifact artifact : artifacts) {
 			String txtFile = "";
 			if (artifact != null) {
@@ -115,20 +112,11 @@ public class AppService {
 		for (Artifact incompleteArtifact : incompleteArtifacts) {
 			String value = incompleteArtifact.getArtifactId();
 			List<Artifact> newArtifacts = artifactService.takeByArtifactId(value);
-			System.out.println(newArtifacts);
-
-			if (newArtifacts != null) {
+			if (!newArtifacts.isEmpty()) {
 				artifacts.addAll(newArtifacts);
 			} else {
-				// if (!message.equals("pom_TDP_4.xml")) {
-				// System.out.println("Artifact doesn't found in " + message + "
-				// : " + value);
-				// try {
-				// artifacts.add(checkManualDependencies(value));
-				// } catch (IOException e) {
-				// e.printStackTrace();
-				// }
-				// }
+				artifacts.add( new Artifact() {{setVersion(value);}});
+				System.out.println("!!!!" + value);
 			}
 		}
 		return artifacts;
@@ -141,20 +129,12 @@ public class AppService {
 
 			List<Artifact> newArtifacts = artifactService.takeByVersion(value);
 
-			if (newArtifacts != null) {
-
+			if (!newArtifacts.isEmpty()) {
 				artifacts.addAll(newArtifacts);
 
 			} else {
-				// if (!message.equals("pom_TDP_4.xml")) {
-				// System.out.println("Artifact doesn't found in " + message
-				// + " : " + value);
-				// try {
-				// artifacts.add(checkManualDependencies(value));
-				// } catch (IOException e) {
-				// e.printStackTrace();
-				// }
-				// }
+				artifacts.add( new Artifact() {{setVersion(value);}});
+				System.out.println("!!!!" + value);
 			}
 		}
 		return artifacts;
@@ -850,7 +830,7 @@ public class AppService {
 				List<String> resultSplit = splitter.splitToList(
 						unbrella.replaceAll(" ", "").replaceAll("\"", "'").replaceAll("project.property", "property"));
 				if (resultSplit.size() > 1 && !resultSplit.get(1).contains(",module:")) {
-					String configuration = resultSplit.get(0);
+					//String configuration = resultSplit.get(0);
 					splitter = Splitter.on("',name:'");
 					resultSplit = splitter.splitToList(resultSplit.get(1));
 					String groupId = resultSplit.get(0);
@@ -955,11 +935,15 @@ public class AppService {
 				List<Artifact> art = artifactService.takeByVersion(artifact.getVersion());
 				List<Artifact> keyArts = artifactService.takeByPath(artifact.getPath());
 
-				System.out.println(i + " " + art);
+				System.out.println(i + " " + art + " " + keyArts);
 
 				if (!art.isEmpty() && !keyArts.isEmpty() && !(keyArts.get(0).getVersion() == null)) {
 					// System.out.print(art.get(0).getVersion() + ",");
 					String key = keyArts.get(0).getVersion().replaceAll("component.", "").replaceAll(".version", "");
+					if (keyArts.get(0).getGroupId().contains(".distrib.")) {
+						String distribName = keyArts.get(0).getGroupId().replace("com.datalex.tdp.distrib.", "");
+						key += "-" + distribName;
+					}
 					// System.out.println(key);
 					List<Artifact> value = arts.get(key);
 					if (value != null) {
@@ -1011,8 +995,8 @@ public class AppService {
 			Map<String, String> props = entry.getValue();
 			String text = Joiner.on("\n").withKeyValueSeparator("=").join(props);
 			String fileName = entry.getKey();
-			System.out.println(pathToTDP + "\\properties\\" + fileName);
-			FileSaver.save(pathToTDP + "\\properties\\" + fileName, text);
+			System.out.println(AppConfig.TDP_LIBS + "/" + fileName);
+			FileSaver.save(AppConfig.TDP_LIBS + "/" + fileName, text);
 
 		}
 	}
@@ -1060,7 +1044,7 @@ public class AppService {
 
 		List<String> result = splitter.splitToList(text);
 		for (String dependency : result) {
-
+			System.out.println(file);
 			String [] deps = splitByLastOccurrence(splitByLastOccurrence(dependency,'.')[0],'-');
 		
 			List<Artifact> takedArtifacts = artifactService.takeByNameAndHadcodedVersion(deps[0], deps[1]);
@@ -1074,6 +1058,7 @@ public class AppService {
 
 	private String [] splitByLastOccurrence(String dependency, Character character) {
 		int position = dependency.lastIndexOf(character);
+		System.out.println(dependency);
 		String [] stringArray = {dependency.substring(position - 1),dependency.substring(position)};
 		return stringArray;
 	}

@@ -23,6 +23,7 @@ public class AppConfig {
 	
 	
 	public final static String SCR_PATH  = ConfigurationManager.getProperty("tdp.path");
+	public final static String TDP_LIBS  = ConfigurationManager.getProperty("tdp.libs");
 	public final static String LIST_JARS_INPUT = ConfigurationManager.getProperty("list.jars.input");
 	public final static String LIST_JARS_OUTPUT = ConfigurationManager.getProperty("list.jars.output");
 
